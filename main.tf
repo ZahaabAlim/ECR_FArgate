@@ -1,45 +1,49 @@
- 
-# terraform {
-#   backend "s3" {
-#     bucket         = "tfstate0609"
-#     key            = "terraform.tfstate"
-#     region         = "us-east-1"
-#     dynamodb_table = "TfState"
-#     encrypt        = true
-#   }
-# }
- 
-provider "aws" {
-  region     = "us-east-1"
- 
+# Configure the S3 backend for storing Terraform state
+terraform {
+  backend "s3" {
+    bucket         = "tfstate0609"
+    key            = "terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "TfState"
+    encrypt        = true
+  }
 }
 
+# Define the AWS provider and region
+provider "aws" {
+  region     = "us-east-1"
+}
+
+# Create a VPC with a /16 CIDR block
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }
- 
+
+# Create the first subnet in the VPC
 resource "aws_subnet" "subnet1" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
 }
- 
+
+# Create the second subnet in the VPC
 resource "aws_subnet" "subnet2" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1b"
 }
- 
+
+# Create a security group for ECS with open ingress and egress rules
 resource "aws_security_group" "ecs_sg" {
   vpc_id = aws_vpc.main.id
- 
+
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
- 
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -47,13 +51,13 @@ resource "aws_security_group" "ecs_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
- 
-# Create ECS Cluster
+
+# Create an ECS cluster named "fargate-cluster"
 resource "aws_ecs_cluster" "fargate_cluster" {
     name = "fargate-cluster"
 }
- 
-# Create IAM Role for ECS Task Execution
+
+# Create an IAM role for ECS task execution
 resource "aws_iam_role" "ecs_task_execution_role" {
     name = "ecsTaskExecutionRole"
     assume_role_policy = jsonencode({
@@ -70,8 +74,8 @@ resource "aws_iam_role" "ecs_task_execution_role" {
         "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
   ]
 }
- 
-# Create ECS Task Definition
+
+# Define an ECS task definition for a Fargate task
 resource "aws_ecs_task_definition" "fargate_task" {
     family                   = "fargate-task"
     cpu                      = 256
@@ -86,21 +90,21 @@ resource "aws_ecs_task_definition" "fargate_task" {
         memory = 512
         essential = true
     }])
- 
+
     runtime_platform {
         operating_system_family = "LINUX"
         cpu_architecture        = "X86_64"
     }
 }
- 
-# Create ECS Service
+
+# Create an ECS service to run the Fargate task
 resource "aws_ecs_service" "fargate_service" {
     name            = "fargate-service"
     cluster         = aws_ecs_cluster.fargate_cluster.id
     task_definition = aws_ecs_task_definition.fargate_task.arn
     launch_type     = "FARGATE"
     network_configuration {
-    subnets         = [aws_subnet.subnet1.id, aws_subnet.subnet2.id]
+    subnets         = [aws_subnet.subnet1.id, aws_subnet2.id]
     security_groups = [aws_security_group.ecs_sg.id]
   }
 }
