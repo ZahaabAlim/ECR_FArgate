@@ -3,8 +3,8 @@ terraform {
     bucket         = "tf-backend-st1"
     key            = "terraform.tfstate"
     region         = "us-east-1"
-    # dynamodb_table = "TfState"
-    # encrypt        = true
+    dynamodb_table = "TfStatelock"
+    encrypt        = true
   }
 }
  
