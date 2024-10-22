@@ -1,28 +1,17 @@
-provider "aws" {
-  region     = "us-east-1"
- 
-}
-resource "aws_dynamodb_table" "terraform_locks" {
-  name         = "TfStatelock"
-  hash_key     = "LockID"
-  billing_mode = "PAY_PER_REQUEST"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-}
 terraform {
   backend "s3" {
     bucket         = "tf-backend-st1"
     key            = "terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "TfStatelock"
-    encrypt        = true
+    # dynamodb_table = "TfStatelock"
+    # encrypt        = true
   }
 }
  
-
+provider "aws" {
+  region     = "us-east-1"
+ 
+}
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
