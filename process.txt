@@ -5,7 +5,7 @@ Explanation of Terraform code:
    - The `bucket`, `key`, `region`, `dynamodb_table`, and `encrypt` settings specify the S3 bucket details and enable state locking using DynamoDB.
 
 2. .Provider Configuration.:
-   - The `provider "aws"` block sets up the AWS provider and specifies the region (`us-east-1`) where the resources will be created.
+   - The `provider "aws"` b lock sets up the AWS provider and specifies the region (`us-east-1`) where the resources will be created.
 
 3. .VPC Creation.:
    - The `aws_vpc "main"` resource creates a Virtual Private Cloud (VPC) with a CIDR block of `10.0.0.0/16`.
