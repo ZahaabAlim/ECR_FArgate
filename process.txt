@@ -1,46 +1,61 @@
 Explanation of Terraform code:
 
-1. .Backend Configuration.: 
-   - The `terraform` block configures the backend to store the Terraform state in an S3 bucket. This ensures that the state is stored remotely and can be shared among team members.
-   - The `bucket`, `key`, `region`, `dynamodb_table`, and `encrypt` settings specify the S3 bucket details and enable state locking using DynamoDB.
 
-2. .Provider Configuration.:
+1.  Backend Configuration :
+   - The `terraform` block configures the backend to store the Terraform state in an S3 bucket. This ensures that the state is stored remotely and can be shared among team members.
+   - The `bucket`, `key`, and `region` settings specify the S3 bucket details.
+
+2.  Provider Configuration :
    - The `provider "aws"` block sets up the AWS provider and specifies the region (`us-east-1`) where the resources will be created.
 
-3. .VPC Creation.:
+3.  VPC Creation :
    - The `aws_vpc "main"` resource creates a Virtual Private Cloud (VPC) with a CIDR block of `10.0.0.0/16`.
 
-4. .Subnet Creation.:
+4.  Subnet Creation :
    - The `aws_subnet "subnet1"` resource creates a subnet within the VPC with a CIDR block of `10.0.1.0/24` in the `us-east-1a` availability zone.
    - The `aws_subnet "subnet2"` resource creates another subnet within the VPC with a CIDR block of `10.0.2.0/24` in the `us-east-1b` availability zone.
 
-5. .Security Group Creation.:
+5.  Security Group Creation :
    - The `aws_security_group "ecs_sg"` resource creates a security group within the VPC.
    - The `ingress` rule allows incoming traffic on port 80 from any IP address.
    - The `egress` rule allows all outbound traffic.
 
-6. .ECS Cluster Creation.:
+6.  ECS Cluster Creation :
    - The `aws_ecs_cluster "fargate_cluster"` resource creates an ECS cluster named `fargate-cluster`.
 
-7. .IAM Role for ECS Task Execution.:
+7.  IAM Role for ECS Task Execution :
    - The `aws_iam_role "ecs_task_execution_role"` resource creates an IAM role for ECS task execution.
    - The `assume_role_policy` allows ECS tasks to assume this role.
    - The `managed_policy_arns` attaches the `AmazonECSTaskExecutionRolePolicy` to the role.
 
-8. .ECS Task Definition.:
+8.  ECS Task Definition :
    - The `aws_ecs_task_definition "fargate_task"` resource defines an ECS task for Fargate.
    - It specifies the task family, CPU, memory, network mode, and required compatibilities.
    - The `execution_role_arn` is set to the ARN of the IAM role created earlier.
    - The `container_definitions` define the container settings, including the image, CPU, memory, and essential flag.
    - The `runtime_platform` specifies the operating system and CPU architecture.
 
-9. .ECS Service Creation.:
+9.  ECS Service Creation :
    - The `aws_ecs_service "fargate_service"` resource creates an ECS service to run the Fargate task.
    - It specifies the service name, cluster, task definition, and launch type.
    - The `network_configuration` sets the subnets and security groups for the service.
 
-This Terraform configuration sets up a complete environment with a VPC, subnets, security group, ECS cluster, IAM role, ECS task definition, and ECS service. 
+10.  EventBridge Rule Creation :
+    - The `aws_cloudwatch_event_rule "ecs_task_scheduler"` resource creates an EventBridge rule named `ecs-task-scheduler`.
+    - This rule is set to trigger on a schedule defined by `schedule_expression`, which in this case is set to run every hour (`rate(1 hour)`).
 
+11.  EventBridge Target Creation :
+    - The `aws_cloudwatch_event_target "ecs_task_target"` resource creates a target for the EventBridge rule.
+    - The target is the ECS cluster (`arn`), and it specifies the ECS task to be run.
+    - The `ecs_target` block defines the task details, including the task definition ARN, the number of tasks to run (`task_count`), the launch type (`FARGATE`), and the network configuration (subnets, security groups, and public IP assignment).
+
+12.  IAM Role Policy for EventBridge :
+    - The `aws_iam_role_policy "allow_eventbridge_to_invoke_ecs"` resource creates an IAM policy that allows EventBridge to invoke ECS tasks.
+    - This policy is attached to the IAM role used by the ECS task execution (`ecs_task_execution_role`).
+    - The policy grants permissions to `ecs:RunTask` and `iam:PassRole`, allowing EventBridge to start ECS tasks and pass the necessary IAM role.
+
+This Terraform configuration sets up a complete environment with a VPC, subnets, security group, ECS cluster, IAM role, ECS task definition, ECS service, and EventBridge rule and target to schedule and run ECS tasks periodically. 
+This Terraform code is designed to automate the setup and periodic execution of a web application on Amazon Web Services (AWS). It creates a secure network environment (VPC) with subnets and security rules, sets up an ECS cluster to manage the application containers, and defines the necessary roles and permissions for the application to run. The code also schedules the application to run every hour using AWS EventBridge. Imagine you have a web app that processes data every hour, like generating reports or cleaning up old data. This setup ensures that your app runs automatically without manual intervention, providing a reliable and efficient way to manage periodic tasks. By using this code, you can focus on your application's functionality while AWS handles the infrastructure and scheduling.
 GitHub Actions workflow file for deploying Terraform:
 
 1.  Workflow Name :
