@@ -27,7 +27,7 @@ resource "aws_subnet" "subnet1" {
 }
 
 # Create the second subnet in the VPC
-resource "aws_subnet" "subnet2" {
+resource "aws_subnet" "subnet3" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1b"
@@ -104,7 +104,7 @@ resource "aws_ecs_service" "fargate_service" {
     task_definition = aws_ecs_task_definition.fargate_task.arn
     launch_type     = "FARGATE"
     network_configuration {
-    subnets         = [aws_subnet.subnet1.id, aws_subnet2.id]
+    subnets         = [aws_subnet.subnet1.id, aws_subnet3.id]
     security_groups = [aws_security_group.ecs_sg.id]
   }
 }
