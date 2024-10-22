@@ -1,7 +1,7 @@
 # Configure the S3 backend for storing Terraform state
 terraform {
   backend "s3" {
-    bucket         = "tfstate0609"
+    bucket         = "tf-backend-st1"
     key            = "terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "TfState"
