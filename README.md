@@ -63,10 +63,4 @@ This repository helps you deploy your application to AWS quickly and reliably, w
 3. **Ensures Consistency**: Keeps your infrastructure consistent and up-to-date with every code change.
 4. **Saves Time**: Reduces the need for manual setup, allowing you to focus on development.
 
-By following these steps, you can easily set up and manage your AWS infrastructure, ensuring that your ECS Fargate service is deployed and running smoothly.
 
-Happy deploying!
-
----
-
-Feel free to let me know if there's anything else you'd like to add or modify!
